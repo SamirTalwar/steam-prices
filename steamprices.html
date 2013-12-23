@@ -17,12 +17,41 @@
         <script src="//beta.scraperwiki.com/js/scraperwiki.js"></script>
 
         <meta http-equiv="cleartype" content="on">
+
+        <style type="text/css">
+            .sql-info {
+                display: none;
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                width: 250px;
+                height: 250px;
+                border: 1px solid #ccc;
+                padding: 16px;
+            }
+        </style>
     </head>
 
     <body>
         <h1>Steam Prices for <span class="today">today</span></h1>
 
+        <div class="sql-info">
+            <h2>SQL Information</h2>
+            <p><strong>Query Endpoint:</strong> <span class="query-endpoint"></span></p>
+            <p><strong>Tables:</strong> <em>games</em> and <em>prices</em></p>
+        </div>
+
+        <div class="game-prices">
+        </div>
+
         <script type="text/coffeescript">
+            QUERY_ENDPOINT = 'https://free-ec2.scraperwiki.com/eccap3i/1c33e251880042f/sql/?q='
+            $('.query-endpoint').append($('<a>')
+                .attr('href', QUERY_ENDPOINT + encodeURI('select * from games limit 10'))
+                .append($('<span>').html(QUERY_ENDPOINT.replace(/\//g, '<wbr/>/')))
+                .append($('<em>').html('&lt;Your&nbsp;SQL&nbsp;Query&gt;')))
+            $('.sql-info').show()
+
             CURRENCIES =
                 uk: '\u00a3'
                 us: '$'
@@ -30,7 +59,7 @@
             ORDER = ['uk', 'us', 'fr']
 
             sql = (query) ->
-                $.getJSON('https://free-ec2.scraperwiki.com/eccap3i/1c33e251880042f/sql/?q=' + encodeURI(query))
+                $.getJSON(QUERY_ENDPOINT + encodeURI(query))
 
             sql('select max(date) today from prices')
                 .then((data) ->
@@ -52,8 +81,7 @@
                         and price.discounted_price is not null
                     """)
                 .done((data) ->
-                    lines = $('<div>')
-                    $('body').append(lines)
+                    gamePricesElement = $('.game-prices')
 
                     _(data)
                         .groupBy((item) -> item.gameId)
@@ -73,7 +101,7 @@
                             })
                         .sortBy((game) -> game.name.toLowerCase())
                         .each((game) ->
-                            lines.append($('<p>')
+                            gamePricesElement.append($('<p>')
                                 .append($('<a>')
                                     .attr('href', game.url)
                                     .text(game.name))
