@@ -20,6 +20,8 @@
     </head>
 
     <body>
+        <h1>Steam Prices for <span class="today">today</span></h1>
+
         <script type="text/coffeescript">
             CURRENCIES =
                 uk: '\u00a3'
@@ -35,7 +37,7 @@
                     today = data[0].today
 
                     document.title = "Steam Prices for #{today}"
-                    $('body').append $('<h1>').text("Steam Prices for #{today}")
+                    $('.today').text today
 
                     sql """
                         select
