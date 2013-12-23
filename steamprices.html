@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Steam Prices for today</title>
+        <meta name="author" content="Samir Talwar">
+
+        <link rel="stylesheet" href="//beta.scraperwiki.com/vendor/style/bootstrap.min.css">
+        <link rel="stylesheet" href="//beta.scraperwiki.com/style/scraperwiki.css">
+        <link rel="stylesheet" href="style.css">
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.4.0/moment.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.2/coffee-script.min.js"></script>
+        <script src="//beta.scraperwiki.com/vendor/js/bootstrap.min.js"></script>
+        <script src="//beta.scraperwiki.com/js/scraperwiki.js"></script>
+
+        <meta http-equiv="cleartype" content="on">
+    </head>
+
+    <body>
+        <script type="text/coffeescript">
+            CURRENCIES =
+                uk: '\u00a3'
+                us: '$'
+                fr: '\u20ac'
+            ORDER = ['uk', 'us', 'fr']
+
+            sql = (query) ->
+                $.getJSON('https://free-ec2.scraperwiki.com/eccap3i/1c33e251880042f/sql/?q=' + encodeURI(query))
+
+            sql('select max(date) today from prices')
+                .then((data) ->
+                    today = data[0].today
+
+                    document.title = "Steam Prices for #{today}"
+                    $('body').append $('<h1>').text("Steam Prices for #{today}")
+
+                    sql """
+                        select
+                            game.id gameId,
+                            game.name,
+                            game.country,
+                            price.original_price originalPrice,
+                            price.discounted_price discountedPrice
+                        from prices price
+                        join games game on game.id = price.id and game.country = price.country
+                        where price.date = date('#{today}')
+                        and price.discounted_price is not null
+                        order by lower(game.name)
+                    """)
+                .done((data) ->
+                    lines = $('<div>')
+                    $('body').append(lines)
+
+                    _(data)
+                        .groupBy((item) -> item.gameId)
+                        .pairs()
+                        .map((group) ->
+                            gameId = group[0]
+                            gamePrices = group[1]
+                            game = gamePrices[0]
+                            priceValues = _(gamePrices)
+                                .sortBy((gamePrice) -> ORDER.indexOf(gamePrice.country))
+                                .map((gamePrice) -> CURRENCIES[gamePrice.country] + gamePrice.discountedPrice)
+
+                            {
+                                url: "http://store.steampowered.com/app/#{gameId}"
+                                name: game.name
+                                prices: priceValues.join('/')
+                            })
+                        .each((game) ->
+                            lines.append($('<p>')
+                                .append($('<a>')
+                                    .attr('href', game.url)
+                                    .text(game.name))
+                                .append(' - ')
+                                .append(game.prices))))
+                .fail((xhr, textStatus, error) ->
+                    $('body').append $('<p>').text('There was an error. Check the logs for details.')
+                    if xhr.responseText
+                        console.error xhr.responseText
+                    console.error [xhr, textStatus, error])
+        </script>
+    </body>
+</html>
