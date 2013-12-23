@@ -48,7 +48,6 @@
                         join games game on game.id = price.id and game.country = price.country
                         where price.date = date('#{today}')
                         and price.discounted_price is not null
-                        order by lower(game.name)
                     """)
                 .done((data) ->
                     lines = $('<div>')
@@ -70,6 +69,7 @@
                                 name: game.name
                                 prices: priceValues.join('/')
                             })
+                        .sortBy((game) -> game.name.toLowerCase())
                         .each((game) ->
                             lines.append($('<p>')
                                 .append($('<a>')
