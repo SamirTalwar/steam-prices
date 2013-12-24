@@ -52,11 +52,12 @@
                 .append($('<em>').html('&lt;Your&nbsp;SQL&nbsp;Query&gt;')))
             $('.sql-info').show()
 
+            ORDER = ['uk', 'us', 'fr']
             CURRENCIES =
                 uk: '\u00a3'
                 us: '$'
                 fr: '\u20ac'
-            ORDER = ['uk', 'us', 'fr']
+            DECIMAL_PLACES = 2
 
             sql = (query) ->
                 $.getJSON(QUERY_ENDPOINT + encodeURI(query))
@@ -92,7 +93,7 @@
                             game = gamePrices[0]
                             priceValues = _(gamePrices)
                                 .sortBy((gamePrice) -> ORDER.indexOf(gamePrice.country))
-                                .map((gamePrice) -> CURRENCIES[gamePrice.country] + gamePrice.discountedPrice)
+                                .map((gamePrice) -> CURRENCIES[gamePrice.country] + gamePrice.discountedPrice.toFixed(DECIMAL_PLACES))
 
                             {
                                 url: "http://store.steampowered.com/app/#{gameId}"
