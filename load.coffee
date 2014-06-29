@@ -56,7 +56,7 @@ $ ->
           })
         .sortBy((game) -> game.name.toLowerCase())
         .each((game) ->
-          gamePricesElement.append($('<p>')
+          gamePricesElement.append($('<div>')
             .append($('<a>')
               .attr('href', game.url)
               .text(game.name))
