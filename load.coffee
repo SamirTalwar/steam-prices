@@ -21,9 +21,9 @@ $ ->
       today = data[0].today
 
       document.title = "Steam Prices for #{today}"
-      $('.today').text today
+      $('.today').text(today)
 
-      sql """
+      sql("""
         select
           game.id gameId,
           game.name,
@@ -34,7 +34,7 @@ $ ->
         join games game on game.id = price.id and game.country = price.country
         where price.date = date('#{today}')
         and price.discounted_price is not null
-      """)
+      """))
     .done((data) ->
       gamePricesElement = $('.game-prices')
 
