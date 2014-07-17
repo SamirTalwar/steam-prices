@@ -14,12 +14,19 @@ $ ->
   DECIMAL_PLACES = 2
 
   sql = (query) ->
-    $.getJSON(QUERY_ENDPOINT + encodeURI(query))
+    Promise.resolve($.getJSON(QUERY_ENDPOINT + encodeURI(query)))
 
-  sql('select max(date) today from prices')
-    .then((data) ->
-      today = data[0].today
+  date = new Promise((resolve, reject) ->
+    url = URI(window.location.href)
+    specifiedDate = url.search(true).date
+    if specifiedDate?
+      resolve(specifiedDate)
+    else
+      resolve(sql('select max(date) today from prices')
+        .then((data) -> data[0].today)))
 
+  date
+    .then((today) ->
       document.title = "Steam Prices for #{today}"
       $('.today').text(today)
 
@@ -35,7 +42,7 @@ $ ->
         where price.date = date('#{today}')
         and price.discounted_price is not null
       """))
-    .done((data) ->
+    .then((data) ->
       gamePricesElement = $('.game-prices')
 
       _(data)
@@ -62,8 +69,6 @@ $ ->
               .text(game.name))
             .append(' - ')
             .append(game.prices))))
-    .fail((xhr, textStatus, error) ->
+    .catch((reason) ->
       $('body').append $('<p>').text('There was an error. Check the logs for details.')
-      if xhr.responseText
-        console.error xhr.responseText
-      console.error [xhr, textStatus, error])
+      console.error reason)
