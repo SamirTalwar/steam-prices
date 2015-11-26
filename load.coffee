@@ -42,25 +42,23 @@ $ ->
 
     specifiedDate = query.date
     if specifiedDate?
-      resolve(typeName: typeName, today: specifiedDate)
+      resolve(typeName: typeName, date: specifiedDate)
     else
       resolve(sql('select max(date) today from prices')
-        .then((data) -> typeName: typeName, today: data[0].today)))
+        .then((data) -> typeName: typeName, date: data[0].today, today: true)))
 
   parameters
-    .then(({typeName, today}) ->
+    .then(({typeName, date, today}) ->
       type = TYPES[typeName]
       return Promise.reject("\"#{typeName}\" is not a valid type.") unless type?
 
-      document.title = "#{type.name} Steam Prices for #{today}"
-      $('.today').text(today)
+      document.title = "#{type.name} Steam Prices for #{date}"
+      $('#date').text(date)
 
-      $('#all-prices-link')
-        .attr('href', "?date=#{today}")
-        .addClass(if type == TYPES.all then 'current-page' else '')
-      $('#discounted-prices-link')
-        .attr('href', "?type=discounted&date=#{today}")
-        .addClass(if type == TYPES.discounted then 'current-page' else '')
+      $('#all-prices-link').attr('href', "?date=#{date}") unless today
+      $('#all-prices-link').addClass('current-page') if type == TYPES.all
+      $('#discounted-prices-link').attr('href', "?type=discounted&date=#{date}") unless today
+      $('#discounted-prices-link').addClass('current-page') if type == TYPES.discounted
 
       sql("""
         select
@@ -71,7 +69,7 @@ $ ->
           price.discounted_price discountedPrice
         from prices price
         join games game on game.id = price.id and game.country = price.country
-        where price.date = date('#{today}')
+        where price.date = date('#{date}')
         #{if type.clause then "and #{type.clause}" else ''}
       """))
     .then((data) ->
