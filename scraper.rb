@@ -19,7 +19,7 @@ def games_and_prices_from response, country
 
   document.css('.search_result_row').collect { |row|
     id = /^http:\/\/[^\/]+\/app\/(\d+)/.match(row['href'])[1].to_i
-    name = row.at_css('.search_name h4').text.strip.gsub(REMOVE, '')
+    name = row.at_css('.search_name .title').text.gsub(REMOVE, '').strip
     release_date = Date.parse(row.at_css('.search_released').text.strip) rescue nil
     prices = row.at_css('.search_price').text
     original_price, discounted_price = (/(#{PRICE_REGEX}) *(#{PRICE_REGEX})/.match(prices) || /(#{PRICE_REGEX})/.match(prices) || //.match('')).captures.collect { |price| price.strip.gsub(CURRENCIES, '').sub(',', '.').to_f }
