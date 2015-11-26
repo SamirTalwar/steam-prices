@@ -11,7 +11,7 @@ intersperse = (object, [head, tail...]) ->
 $ ->
   QUERY_ENDPOINT = 'https://free-ec2.scraperwiki.com/eccap3i/1c33e251880042f/sql/?q='
   $('.query-endpoint').append($('<a>')
-    .attr('href', QUERY_ENDPOINT + encodeURI('select * from games limit 10'))
+    .attr('href', QUERY_ENDPOINT + encodeURI('select * from games where release_date <= date() order by release_date desc limit 10'))
     .append($('<span>').html(QUERY_ENDPOINT.replace(/\//g, '<wbr/>/')))
     .append($('<em>').html('&lt;Your&nbsp;SQL&nbsp;Query&gt;')))
   $('.sql-info').show()
