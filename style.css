@@ -8,6 +8,14 @@
     padding: 16px;
 }
 
+h1 input {
+    font-size: inherit;
+    font-weight: inherit;
+    padding: 10px;
+    vertical-align: inherit;
+    width: inherit;
+}
+
 .current-page {
     color: #333;
 }

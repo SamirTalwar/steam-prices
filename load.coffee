@@ -25,11 +25,21 @@ $ ->
 
   TYPES =
     all:
+      id: 'all'
       name: 'All'
+      default: true
       clause: ''
     discounted:
+      id: 'discounted'
       name: 'Discounted'
+      default: false
       clause: 'price.discounted_price is not null'
+
+  link = ({type, date, today}) ->
+    components = []
+    components.push "type=#{type.id}" unless type.default
+    components.push "date=#{date}" unless today
+    "?#{components.join('&')}"
 
   sql = (query) ->
     Promise.resolve($.getJSON(QUERY_ENDPOINT + encodeURI(query)))
@@ -53,11 +63,18 @@ $ ->
       return Promise.reject("\"#{typeName}\" is not a valid type.") unless type?
 
       document.title = "#{type.name} Steam Prices for #{date}"
-      $('#date').text(date)
+      $('#date').val(date)
+      picker = new Pikaday(
+        field: $('#date')[0]
+        format: 'YYYY-MM-DD'
+        onSelect: () ->
+          window.location = link({type: type, date: picker.toString(), today: false})
+        defaultDate: date
+      )
 
-      $('#all-prices-link').attr('href', "?date=#{date}") unless today
+      $('#all-prices-link').attr('href', link({type: TYPES.all, date: date, today: today}))
       $('#all-prices-link').addClass('current-page') if type == TYPES.all
-      $('#discounted-prices-link').attr('href', "?type=discounted&date=#{date}") unless today
+      $('#discounted-prices-link').attr('href', link({type: TYPES.discounted, date: date, today: today}))
       $('#discounted-prices-link').addClass('current-page') if type == TYPES.discounted
 
       sql("""
