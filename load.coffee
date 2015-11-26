@@ -1,6 +1,13 @@
 ---
 ---
 
+intersperse = (object, [head, tail...]) ->
+  result = [head]
+  for value in tail
+    result.push object
+    result.push value
+  result
+
 $ ->
   QUERY_ENDPOINT = 'https://free-ec2.scraperwiki.com/eccap3i/1c33e251880042f/sql/?q='
   $('.query-endpoint').append($('<a>')
@@ -16,22 +23,44 @@ $ ->
     fr: '\u20ac'
   DECIMAL_PLACES = 2
 
+  TYPES =
+    all:
+      name: 'All'
+      clause: ''
+    discounted:
+      name: 'Discounted'
+      clause: 'price.discounted_price is not null'
+
   sql = (query) ->
     Promise.resolve($.getJSON(QUERY_ENDPOINT + encodeURI(query)))
 
-  date = new Promise((resolve, reject) ->
-    url = URI(window.location.href)
-    specifiedDate = url.search(true).date
+  parameters = new Promise((resolve, reject) ->
+    uri = URI(window.location.href)
+    query = uri.search(true)
+
+    typeName = query.type ? 'all'
+
+    specifiedDate = query.date
     if specifiedDate?
-      resolve(specifiedDate)
+      resolve(typeName: typeName, today: specifiedDate)
     else
       resolve(sql('select max(date) today from prices')
-        .then((data) -> data[0].today)))
+        .then((data) -> typeName: typeName, today: data[0].today)))
 
-  date
-    .then((today) ->
-      document.title = "Steam Prices for #{today}"
+  parameters
+    .then(({typeName, today}) ->
+      type = TYPES[typeName]
+      return Promise.reject("\"#{typeName}\" is not a valid type.") unless type?
+
+      document.title = "#{type.name} Steam Prices for #{today}"
       $('.today').text(today)
+
+      $('#all-prices-link')
+        .attr('href', "?date=#{today}")
+        .addClass(if type == TYPES.all then 'current-page' else '')
+      $('#discounted-prices-link')
+        .attr('href', "?type=discounted&date=#{today}")
+        .addClass(if type == TYPES.discounted then 'current-page' else '')
 
       sql("""
         select
@@ -43,7 +72,7 @@ $ ->
         from prices price
         join games game on game.id = price.id and game.country = price.country
         where price.date = date('#{today}')
-        and price.discounted_price is not null
+        #{if type.clause then "and #{type.clause}" else ''}
       """))
     .then((data) ->
       gamePricesElement = $('.game-prices')
@@ -51,27 +80,33 @@ $ ->
       _(data)
         .groupBy((item) -> item.gameId)
         .pairs()
-        .map((group) ->
-          gameId = group[0]
-          gamePrices = group[1]
-          game = gamePrices[0]
-          priceValues = _(gamePrices)
-            .sortBy((gamePrice) -> ORDER.indexOf(gamePrice.country))
-            .map((gamePrice) -> CURRENCIES[gamePrice.country] + gamePrice.discountedPrice.toFixed(DECIMAL_PLACES))
+        .sortBy(([gameId, gamePrices]) -> gamePrices[0].name.toLowerCase())
+        .forEach(([gameId, gamePrices]) ->
+          url = "http://store.steampowered.com/app/#{gameId}"
+          name = gamePrices[0].name
 
-          {
-            url: "http://store.steampowered.com/app/#{gameId}"
-            name: game.name
-            prices: priceValues.join('/')
-          })
-        .sortBy((game) -> game.name.toLowerCase())
-        .forEach((game) ->
-          gamePricesElement.append($('<div>')
+          gameElement = $('<div>')
             .append($('<a>')
-              .attr('href', game.url)
-              .text(game.name))
+              .attr('href', url)
+              .text(name))
             .append(' - ')
-            .append(game.prices)))
+
+          priceElements = intersperse('/', _(gamePrices)
+            .sortBy((gamePrice) -> ORDER.indexOf(gamePrice.country))
+            .map((gamePrice) ->
+              if gamePrice.discountedPrice?
+                $('<span>').addClass('discounted-price')
+                  .text(CURRENCIES[gamePrice.country] + gamePrice.discountedPrice.toFixed(DECIMAL_PLACES))
+              else
+                $('<span>').addClass('original-price')
+                  .text(CURRENCIES[gamePrice.country] + gamePrice.originalPrice.toFixed(DECIMAL_PLACES)))
+            .value())
+
+          for priceElement in priceElements
+            gameElement.append(priceElement)
+
+          gamePricesElement.append(gameElement)
+        )
         .commit())
     .catch((reason) ->
       $('body').append $('<p>').text('There was an error. Check the logs for details.')

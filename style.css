@@ -7,3 +7,11 @@
     border: 1px solid #ccc;
     padding: 16px;
 }
+
+.current-page {
+    color: #333;
+}
+
+.original-price {
+    color: #999;
+}

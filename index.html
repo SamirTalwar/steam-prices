@@ -15,9 +15,16 @@
     </head>
 
     <body>
-        <h1>Steam Prices for <span class="today">today</span></h1>
+        <header>
+            <h1>Steam Prices for <span class="today">today</span></h1>
 
-        <div class="sql-info">
+            <h2>
+                <a id="discounted-prices-link" href="?type=discounted">Discounted Prices</a> |
+                <a id="all-prices-link" href="?">All Prices</a>
+            </h2>
+        </header>
+
+        <aside class="sql-info">
             <h2>SQL Information</h2>
             <p><strong>Query Endpoint:</strong> <span class="query-endpoint"></span></p>
 
@@ -42,10 +49,10 @@ FOREIGN KEY country REFERENCES games.country;
             </pre>
 
             <p><code>DATE</code> is not a real data type in SQLite, unfortunately. We're using <code>TEXT</code> instead.</p>
-        </div>
+        </aside>
 
-        <div class="game-prices">
-        </div>
+        <main class="game-prices">
+        </main>
 
         <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
