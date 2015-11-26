@@ -12,7 +12,7 @@ COUNTRIES = ['uk', 'us', 'fr']
 REMOVE = /[\uFFFD®™]/
 CURRENCIES = /[$£€]/
 
-PRICE_REGEX = /[^0-9.,][0-9.,]+|[0-9.,]+[^0-9.,]/
+PRICE_REGEX = /#{CURRENCIES}[0-9.,]+/
 
 def games_and_prices_from response, country
   document = Nokogiri::HTML response.body.encode('utf-8', 'utf-8', :invalid => :replace)
