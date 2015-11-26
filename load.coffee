@@ -1,3 +1,6 @@
+---
+---
+
 $ ->
   QUERY_ENDPOINT = 'https://free-ec2.scraperwiki.com/eccap3i/1c33e251880042f/sql/?q='
   $('.query-endpoint').append($('<a>')
