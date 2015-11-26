@@ -37,6 +37,21 @@ def games_and_prices_from response, country
   }
 end
 
+def save games, prices, tries = 3
+  begin
+    ScraperWiki::save_sqlite [:id, :country], games, 'games'
+    ScraperWiki::save_sqlite [:id, :country, :date], prices, 'prices'
+  rescue SQLite3::BusyException
+    if tries > 1
+      puts 'SQLite3 was busy. Trying again in 10 seconds...'
+      sleep 10
+      save games, prices, (tries - 1)
+    else
+      raise
+    end
+  end
+end
+
 requests = COUNTRIES.flat_map do |country|
   html = Typhoeus::Request.get("http://store.steampowered.com/search/?cc=#{country}&category1=998").body
   html.encode! 'utf-8', 'utf-8', :invalid => :replace
@@ -82,8 +97,7 @@ requests.each_slice(BATCH_SIZE) do |batch|
       }
   }
 
-  ScraperWiki::save_sqlite [:id, :country], games, 'games'
-  ScraperWiki::save_sqlite [:id, :country, :date], prices, 'prices'
+  save games, prices
 end
 
 puts 'Done.'

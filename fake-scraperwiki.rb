@@ -1,3 +1,6 @@
+require 'set'
+require 'sqlite3'
+
 module ScraperWiki
   def self.save_sqlite keys, rows, table
     puts "Saving to #{table}:"
