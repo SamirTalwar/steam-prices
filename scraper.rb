@@ -88,13 +88,13 @@ requests.each_slice(BATCH_SIZE) do |batch|
     }
   }
   prices = responses.collect { |response|
-      {
-        id: response[:id],
-        country: response[:country],
-        date: $start,
-        original_price: response[:original_price],
-        discounted_price: response[:discounted_price]
-      }
+    {
+      id: response[:id],
+      country: response[:country],
+      date: $start,
+      original_price: response[:original_price],
+      discounted_price: response[:discounted_price]
+    }
   }
 
   save games, prices
