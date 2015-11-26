@@ -3,7 +3,7 @@
 
 require 'date'
 require 'nokogiri'
-require 'scraperwiki'
+require (ARGV[0] == '--fake') ? './fake-scraperwiki' : 'scraperwiki'
 require 'typhoeus'
 
 $start = Time.now.to_date

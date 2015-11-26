@@ -127,6 +127,8 @@ PLATFORMS
 
 DEPENDENCIES
   github-pages
+  nokogiri
+  typhoeus
 
 BUNDLED WITH
    1.10.6
