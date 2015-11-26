@@ -65,13 +65,14 @@ $ ->
             prices: priceValues.join('/')
           })
         .sortBy((game) -> game.name.toLowerCase())
-        .each((game) ->
+        .forEach((game) ->
           gamePricesElement.append($('<div>')
             .append($('<a>')
               .attr('href', game.url)
               .text(game.name))
             .append(' - ')
-            .append(game.prices))))
+            .append(game.prices)))
+        .commit())
     .catch((reason) ->
       $('body').append $('<p>').text('There was an error. Check the logs for details.')
       console.error reason)
