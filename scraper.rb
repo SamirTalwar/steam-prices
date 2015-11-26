@@ -12,7 +12,7 @@ COUNTRIES = ['uk', 'us', 'fr']
 REMOVE = /[\uFFFD®™]/
 CURRENCIES = /[$£€]/
 
-PRICE_REGEX = /#{CURRENCIES}[0-9.,]+/
+PRICE_REGEX = /#{CURRENCIES}[0-9.,]+|[0-9.,]+#{CURRENCIES}/
 
 BATCH_SIZE = 10
 
@@ -23,7 +23,7 @@ def games_and_prices_from response, country
     id = /^http:\/\/[^\/]+\/app\/(\d+)/.match(row['href'])[1].to_i
     name = row.at_css('.search_name .title').text.gsub(REMOVE, '').strip
     release_date = Date.parse(row.at_css('.search_released').text.strip) rescue nil
-    prices = row.at_css('.search_price').text
+    prices = row.at_css('.search_price').text.strip
     original_price, discounted_price = (/(#{PRICE_REGEX}) *(#{PRICE_REGEX})/.match(prices) || /(#{PRICE_REGEX})/.match(prices) || //.match('')).captures.collect { |price| price.strip.gsub(CURRENCIES, '').sub(',', '.').to_f }
     original_price ||= 0
     {
