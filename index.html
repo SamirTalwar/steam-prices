@@ -28,7 +28,28 @@
         <div class="sql-info">
             <h2>SQL Information</h2>
             <p><strong>Query Endpoint:</strong> <span class="query-endpoint"></span></p>
-            <p><strong>Tables:</strong> <em>games</em> and <em>prices</em></p>
+
+            <h3>Tables</h3>
+            <pre>
+CREATE TABLE games (
+    id INTEGER NOT NULL,
+    country ENUM ('uk', 'us', 'fr') NOT NULL,
+    name TEXT NOT NULL,
+    release_date DATE
+) PRIMARY KEY (id, country);
+
+CREATE TABLE prices (
+    id INTEGER NOT NULL,
+    country ENUM ('uk', 'us', 'fr') NOT NULL,
+    date DATE NOT NULL,
+    original_price REAL NOT NULL,
+    discounted_price REAL
+) PRIMARY KEY (id, country, date),
+FOREIGN KEY id REFERENCES games.id,
+FOREIGN KEY country REFERENCES games.country;
+            </pre>
+
+            <p><code>DATE</code> is not a real data type in SQLite, unfortunately. We're using <code>TEXT</code> instead.</p>
         </div>
 
         <div class="game-prices">
