@@ -92,6 +92,9 @@ $ ->
     .then((data) ->
       gamePricesElement = $('.game-prices')
 
+      if data.length == 0
+        gamePricesElement.append($('<p>').text('There are no prices on record for this date.'))
+
       _(data)
         .groupBy((item) -> item.gameId)
         .pairs()
