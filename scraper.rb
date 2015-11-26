@@ -14,6 +14,8 @@ CURRENCIES = /[$£€]/
 
 PRICE_REGEX = /#{CURRENCIES}[0-9.,]+/
 
+BATCH_SIZE = 10
+
 def games_and_prices_from response, country
   document = Nokogiri::HTML response.body.encode('utf-8', 'utf-8', :invalid => :replace)
 
@@ -49,32 +51,39 @@ requests = COUNTRIES.flat_map do |country|
 end
 
 hydra = Typhoeus::Hydra.new max_concurrency: 5
-requests.each do |request, country|
-  hydra.queue request
-end
-hydra.run
+batch_no = 0
+requests.each_slice(BATCH_SIZE) do |batch|
+  batch_no += 1
+  puts "Batch #{batch_no} running..."
+  batch.each do |request, country|
+    hydra.queue request
+  end
+  hydra.run
 
-responses = requests.flat_map { |request, country|
-  games_and_prices_from request.response, country
-}
-
-games = responses.collect { |response|
-  {
-    id: response[:id],
-    country: response[:country],
-    name: response[:name],
-    release_date: response[:release_date]
+  responses = batch.flat_map { |request, country|
+    games_and_prices_from request.response, country
   }
-}
-prices = responses.collect { |response|
+
+  games = responses.collect { |response|
     {
       id: response[:id],
       country: response[:country],
-      date: $start,
-      original_price: response[:original_price],
-      discounted_price: response[:discounted_price]
+      name: response[:name],
+      release_date: response[:release_date]
     }
-}
+  }
+  prices = responses.collect { |response|
+      {
+        id: response[:id],
+        country: response[:country],
+        date: $start,
+        original_price: response[:original_price],
+        discounted_price: response[:discounted_price]
+      }
+  }
 
-ScraperWiki::save_sqlite [:id, :country], games, 'games'
-ScraperWiki::save_sqlite [:id, :country, :date], prices, 'prices'
+  ScraperWiki::save_sqlite [:id, :country], games, 'games'
+  ScraperWiki::save_sqlite [:id, :country, :date], prices, 'prices'
+end
+
+puts 'Done.'
