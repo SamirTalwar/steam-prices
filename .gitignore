@@ -1,1 +1,3 @@
-_site
+/.bundle/ruby
+/.jekyll-metadata
+/_site
