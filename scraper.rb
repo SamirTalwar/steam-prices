@@ -20,8 +20,14 @@ def games_and_prices_from response, country
   document = Nokogiri::HTML response.body.encode('utf-8', 'utf-8', :invalid => :replace)
 
   document.css('.search_result_row').collect { |row|
-    id = /^https:\/\/[^\/]+\/app\/(\d+)/.match(row['href'])[1].to_i
     name = row.at_css('.search_name .title').text.gsub(REMOVE, '').strip
+    id_match = /^https:\/\/[^\/]+\/((?:app|sub)\/\d+)/.match(row['href'])
+    if id_match.nil?
+      puts "Could not process \"#{name}\".\nURL: #{row['href']}"
+      next nil
+    end
+    id = id_match[1]
+
     release_date = Date.parse(row.at_css('.search_released').text.strip) rescue nil
     prices = row.at_css('.search_price').text.strip
     original_price, discounted_price = (/(#{PRICE_REGEX})? *(#{PRICE_REGEX})?/.match(prices)).captures.collect { |price|
@@ -84,9 +90,11 @@ requests.each_slice(BATCH_SIZE) do |batch|
   end
   hydra.run
 
-  responses = batch.flat_map { |request, country|
-    games_and_prices_from request.response, country
-  }
+  responses = batch
+    .flat_map { |request, country|
+      games_and_prices_from request.response, country
+    }
+    .reject(&:nil?)
 
   games = responses.collect { |response|
     {

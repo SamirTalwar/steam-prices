@@ -100,7 +100,9 @@ $ ->
         .pairs()
         .sortBy(([gameId, gamePrices]) -> gamePrices[0].name.toLowerCase())
         .forEach(([gameId, gamePrices]) ->
-          url = "https://store.steampowered.com/app/#{gameId}"
+          if typeof gameId == 'number'
+            gameId = "app/#{gameId}"
+          url = "https://store.steampowered.com/#{gameId}"
           name = gamePrices[0].name
 
           gameElement = $('<div>')
