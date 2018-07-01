@@ -74,7 +74,7 @@ requests = COUNTRIES.flat_map do |country|
   }
 end
 
-hydra = Typhoeus::Hydra.new max_concurrency: 5
+hydra = Typhoeus::Hydra.new max_concurrency: BATCH_SIZE
 batch_no = 0
 requests.each_slice(BATCH_SIZE) do |batch|
   batch_no += 1
