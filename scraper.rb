@@ -20,7 +20,7 @@ def games_and_prices_from response, country
   document = Nokogiri::HTML response.body.encode('utf-8', 'utf-8', :invalid => :replace)
 
   document.css('.search_result_row').collect { |row|
-    id = /^http:\/\/[^\/]+\/app\/(\d+)/.match(row['href'])[1].to_i
+    id = /^https:\/\/[^\/]+\/app\/(\d+)/.match(row['href'])[1].to_i
     name = row.at_css('.search_name .title').text.gsub(REMOVE, '').strip
     release_date = Date.parse(row.at_css('.search_released').text.strip) rescue nil
     prices = row.at_css('.search_price').text.strip
@@ -62,14 +62,14 @@ def save games, prices, tries = 3
 end
 
 requests = COUNTRIES.flat_map do |country|
-  html = Typhoeus::Request.get("http://store.steampowered.com/search/?cc=#{country}&category1=998").body
+  html = Typhoeus::Request.get("https://store.steampowered.com/search/?cc=#{country}&category1=998").body
   html.encode! 'utf-8', 'utf-8', :invalid => :replace
   document = Nokogiri::HTML html
   page_count = document.css('.search_pagination_right a').map(&:text).map(&:to_i).max
   puts "#{country} has #{page_count} pages."
 
   (1..page_count).collect { |page|
-    request = Typhoeus::Request.new "http://store.steampowered.com/search/?cc=#{country}&category1=998&page=#{page}"
+    request = Typhoeus::Request.new "https://store.steampowered.com/search/?cc=#{country}&category1=998&page=#{page}"
     [request, country]
   }
 end
