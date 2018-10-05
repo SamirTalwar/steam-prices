@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'github-pages'
+gem 'github-pages', '>= 192'
 
 gem 'nokogiri'
 gem 'sqlite3'
